@@ -41,13 +41,17 @@ def add_tags(current_folder):
             meta_tag = soup.new_tag('meta')
             meta_tag.attrs['name'] = 'ad.size'
             meta_tag.attrs['content'] = 'width='+width+",height="+height
-            soup.head.title.insert_before(meta_tag)
+
+            meta_tag_replacer = "meta_tag_replace"
+            meta_tag_v2 = '<meta name="ad.size" content="width=$1,height=$2">'.replace("$1", str(width)).replace("$2", str(height))
+            soup.head.title.insert_before(meta_tag_replacer)
 
             # inserting script click tag
             # <script> var clickTag = "https://company_link";</script> 
-            company_link = input("Please insert the company link: ")
+            # company_link = input("Please insert the company link: ")
             click_tag_script = soup.new_tag('script')
-            click_tag_script.append('var clickTag = "' + company_link + '";')
+            click_tag_script.attrs['type'] = 'text/javascript'
+            click_tag_script.append('var clickTag = "{ad_url}";')
             soup.head.title.insert_after(click_tag_script)
 
             # inserting script createjs.min.js
@@ -60,14 +64,15 @@ def add_tags(current_folder):
             # <a href="javascript:window.open(window.clickTag)"><canvas></canvas></a>
             a_wrapper_tag = soup.new_tag('a')
             a_wrapper_tag.attrs['href'] = 'javascript:window.open(window.clickTag)'
-            soup.canvas.wrap(a_wrapper_tag);
+            soup.canvas.wrap(a_wrapper_tag)
 
             # removing cdn createjs.min.js 
             soup.find(attrs={"src": "https://code.createjs.com/1.0.0/createjs.min.js"}).decompose()
 
             
             with open(file_name, 'w') as f_w:
-                f_w.write(soup.prettify().replace('images/',''))
+                content = soup.prettify().replace('images/','').replace(meta_tag_replacer, meta_tag_v2)
+                f_w.write(content)
                 print("\nTags added")
 
     except Exception as e:
@@ -119,7 +124,9 @@ def main():
     print("1. Add meta tags and clean .fla file then zip")
     print("2. Coming soon... ")
     print("\n")
-    op = int(input("Select operation:"))
+    # op = int(input("Select operation:"))
+    op = 1
+    print("Currently we have only one operation, becuase of that operation 1 selected by default")
 
     print("\n")
     if op == 1:
